@@ -1,0 +1,10 @@
+<input id = "fileSelect" type ="file" accept = ".csv" multiple (change) = "onFileSelect($event)"> 
+<div *ngIf="chartA">
+  <canvas id="canvasA">{{ chartA }}</canvas>
+</div>
+<br>
+<br>
+<br>
+<div *ngIf="chartB">
+  <canvas id="canvasB">{{ chartB }}</canvas>
+</div>
