@@ -26,17 +26,13 @@ export class UploadComponent implements OnInit {
 
     this.colorsA = new Set();
     this.colorsB = new Set();
-    //this.setA = 'a';
-    //this.setB = 'b';
+
   }
 
   ngOnInit() {
-   // this.setA = 'a';
-   // this.setB = 'b';
-   // console.log(this.setA);
-    //console.log(this.setB);
+  
   }
-
+  //generates random color hexadecimal
   generateColor(){
     var n = 6, s = '#';
 	      while(n--){
@@ -44,26 +40,36 @@ export class UploadComponent implements OnInit {
         }
         return s;
   }
+
+
+  //basically the main function. Is async because of the await and async read() function that is called
   async onFileSelect(event){
     var files = event.target.files;
     var fileA = files[0];
     var fileB = files[1];
+    //calls the read function and awaits for the Promise return to set it to global variables
     let Afinished = await this.read(fileA);
-    this.setA = this.OnResponse(Afinished);
+    this.setA = this.CSVtoJSON(Afinished);
     let Bfinished = await this.read(fileB);
-    this.setB = this.OnResponse(Bfinished);
+    this.setB = this.CSVtoJSON(Bfinished);
+    
     console.log('seta: '+ this.setA[1]);
     console.log('setb: '+ this.setB[1]);
 
+    //scrapes the desired data from the json
     for(var i = 1; i < this.setA.length; i ++ ){
       if(this.setA[i]['Holding name'] != ""){
+        //adds a unique color to the colorset for each holding name
         let color = this.generateColor();
         while(this.colorsA.has(color)){
           color = this.generateColor();
         }
         this.colorsA.add(color);
+
+        //adds each holding name to a set and the corresponding data
         this.namesA.push(this.setA[i]['Holding name']);
         let temp = this.setA[i]['% of market value'];
+        //removing uneccessary characters from the data
         temp = temp.replace(new RegExp('=', 'g'), '');
         temp = temp.replace(new RegExp('"','g'), '');
         temp = temp.replace(new RegExp('%','g'), '');
@@ -72,6 +78,7 @@ export class UploadComponent implements OnInit {
       }
     }
 
+    //same as above but for setB this time
     for(var i = 1; i < this.setB.length; i ++ ){
       if(this.setB[i]['Holding name'] != ""){
         let color = this.generateColor();
@@ -89,6 +96,7 @@ export class UploadComponent implements OnInit {
       }
     }
 
+    //change the colors object of type Set to type Array
     this.colorsA = Array.from(this.colorsA);
     this.colorsB = Array.from(this.colorsB);
     console.log(this.namesA);
@@ -99,9 +107,11 @@ export class UploadComponent implements OnInit {
     console.log(this.numbersB);
     console.log(this.colorsB);
 
+    //finally create the charts with the data
     this.createChart();
   }
 
+  //reads file. As FileReader is an async task, a promise must be used to wrap the onload function in order to get the data outside of the function
   read(file){
     return new Promise((resolve, reject)=> {
       let reader = new FileReader();
@@ -113,9 +123,9 @@ export class UploadComponent implements OnInit {
     })
     
   }
-
-  OnResponse(res){
-    var lines=res.split("\n");
+    //changes csv file type to json
+    CSVtoJSON(csv){
+    var lines=csv.split("\n");
     var result = [];
     var headers=lines[5].split(",");
     for(var i=5;i<lines.length;i++){
@@ -129,24 +139,13 @@ export class UploadComponent implements OnInit {
     }
 
     return result;
-    //console.log(JSON.stringify(result));
-   /* let x = true;
-    if(x){
-      this.setA = result;
-      
-      console.log(this.setA[1]['Holding name']);
-      x = false;
-    } else if (!x){
-      
-      this.setB = result;
-      console.log(this.setB[1].Holdingname);
-      x= true;
-    }   */
+  
   }
+
   createChart(){
     
     this.chartA = new Chart('canvasA', {
-      type:'pie',
+      type:'horizontalBar',
       data: {
         labels: this.namesA,
         datasets:[{
@@ -159,7 +158,7 @@ export class UploadComponent implements OnInit {
     });
   
     this.chartB = new Chart('canvasB', {
-      type:'pie',
+      type:'horizontalBar',
       data: {
         labels: this.namesB,
         datasets:[{
